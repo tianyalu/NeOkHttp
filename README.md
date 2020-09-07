@@ -234,3 +234,106 @@ public class MyDemonThread {
 }
 ```
 
+### 2.3 构建者设计模式
+
+构建者设计模式可以用盖房子的例子形象地描述：
+
+![image](https://github.com/tianyalu/NeOkHttp/raw/master/show/builder_design_mode.png)
+
+代码样例如下：
+
+```java
+public class Request<T>{
+    private String action;
+    private int reqEvent;
+    private long seqId;
+    private T req;
+    private transient int reqCount;
+    private transient long timeout;
+
+    public Request() {
+
+    }
+
+    public Request(String action, int reqEvent, long seqId, T req, int reqCount, long timeout) {
+        this.action = action;
+        this.reqEvent = reqEvent;
+        this.seqId = seqId;
+        this.req = req;
+        this.reqCount = reqCount;
+        this.timeout = timeout;
+    }
+
+    public static class Builder<T> {
+        //action 请求类型
+        private String action;
+        private int reqEvent;
+        private long seqId;
+        //请求子类数据，按照具体业务划分
+        private T req;
+        //请求次数 便于重试
+        private int reqCount;
+        //超时时间
+        private long timeout;
+
+        public Builder<T> setAction(String action) {
+            this.action = action;
+            return this;
+        }
+
+        public Builder<T> setReqEvent(int reqEvent) {
+            this.reqEvent = reqEvent;
+            return this;
+        }
+
+        public Builder<T> setSeqId(long seqId) {
+            this.seqId = seqId;
+            return this;
+        }
+
+        public Builder<T> setReq(T req) {
+            this.req = req;
+            return this;
+        }
+
+        public Builder<T> setReqCount(int reqCount) {
+            this.reqCount = reqCount;
+            return this;
+        }
+
+        public Builder<T> setTimeout(long timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        public Request<T> build() {
+            return new Request<T>(action, reqEvent, seqId, req, reqCount, timeout);
+        }
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public int getReqEvent() {
+        return reqEvent;
+    }
+
+    public long getSeqId() {
+        return seqId;
+    }
+
+    public T getReq() {
+        return req;
+    }
+
+    public int getReqCount() {
+        return reqCount;
+    }
+
+    public long getTimeout() {
+        return timeout;
+    }
+}
+```
+
