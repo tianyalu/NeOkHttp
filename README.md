@@ -337,3 +337,143 @@ public class Request<T>{
 }
 ```
 
+### 2.4 责任链模式
+
+#### 2.4.1 `OkHttp`中的责任链模式
+
+`OkHttp`中的责任链模式如下图所示：
+
+![image](https://github.com/tianyalu/NeOkHttp/raw/master/show/okhttp_duty_chain_mode.png)
+
+源码如下所示：
+
+```java
+  Response getResponseWithInterceptorChain() throws IOException {
+    // Build a full stack of interceptors.
+    List<Interceptor> interceptors = new ArrayList<>();
+    interceptors.addAll(client.interceptors());
+    interceptors.add(retryAndFollowUpInterceptor);
+    interceptors.add(new BridgeInterceptor(client.cookieJar()));
+    interceptors.add(new CacheInterceptor(client.internalCache()));
+    interceptors.add(new ConnectInterceptor(client));
+    if (!forWebSocket) {
+      interceptors.addAll(client.networkInterceptors());
+    }
+    interceptors.add(new CallServerInterceptor(forWebSocket));
+
+    Interceptor.Chain chain = new RealInterceptorChain(interceptors, null, null, null, 0,
+        originalRequest, this, eventListener, client.connectTimeoutMillis(),
+        client.readTimeoutMillis(), client.writeTimeoutMillis());
+
+    return chain.proceed(originalRequest);
+  }
+```
+
+#### 2.4.1 手写熟悉责任链模式
+
+`IBaseTask`：
+
+```java
+public interface IBaseTask {
+    void doRunAction(String isTask, IBaseTask iBaseTask);
+}
+```
+
+`ChainManager`：
+
+```java
+public class ChainManager implements IBaseTask {
+    private List<IBaseTask> iBaseTaskList = new ArrayList<>();
+
+    public void addTask(IBaseTask iBaseTask) {
+        iBaseTaskList.add(iBaseTask);
+    }
+    private int index = 0;
+
+    @Override
+    public void doRunAction(String isTask, IBaseTask iBaseTask) {
+        if(iBaseTaskList.isEmpty()) {
+            //抛出异常
+            return;
+        }
+        if(index >= iBaseTaskList.size()) {
+            return;
+        }
+      
+        IBaseTask iBaseTaskResult = iBaseTaskList.get(index); //index=0 --> t1  index=1 --> t2
+        index++;
+        // t1.doRunAction()  t2.doRunAction()
+        iBaseTaskResult.doRunAction(isTask, iBaseTask);
+    }
+}
+```
+
+`Task1`：
+
+```java
+public class Task1 implements IBaseTask {
+    @Override
+    public void doRunAction(String isTask, IBaseTask iBaseTask) {
+        if("no".equals(isTask)) {
+            System.out.println("拦截器 任务节点一处理了 ...");
+            return;
+        }else {
+            //继续执行下一个链条的任务节点   chainManager.doRunAction("ok", chainManager)
+            iBaseTask.doRunAction(isTask, iBaseTask);
+        }
+    }
+}
+```
+
+`Task2`：
+
+```java
+public class Task2 implements IBaseTask {
+    @Override
+    public void doRunAction(String isTask, IBaseTask iBaseTask) {
+        if("ok".equals(isTask)) {
+            System.out.println("拦截器 任务节点二处理了 ...");
+            return;
+        }else {
+            //继续执行下一个链条的任务节点
+            iBaseTask.doRunAction(isTask, iBaseTask);
+        }
+    }
+}
+```
+
+`Task3`：
+
+```java
+public class Task3 implements IBaseTask {
+    @Override
+    public void doRunAction(String isTask, IBaseTask iBaseTask) {
+        if("no".equals(isTask)) {
+            System.out.println("拦截器 任务节点三处理了 ...");
+            return;
+        }else {
+            //继续执行下一个链条的任务节点
+            iBaseTask.doRunAction(isTask, iBaseTask);
+        }
+    }
+}
+```
+
+调用实现：
+
+```java
+/**
+ * 对应OkHttp源码 --> getResponseWithInterceptorChain
+ */
+public class Test {
+    public static void main(String[] args) {
+        ChainManager chainManager = new ChainManager();
+        chainManager.addTask(new Task1());
+        chainManager.addTask(new Task2());
+        chainManager.addTask(new Task3());
+
+        chainManager.doRunAction("ok", chainManager);
+    }
+}
+```
+
