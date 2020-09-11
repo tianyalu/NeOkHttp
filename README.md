@@ -14,6 +14,10 @@
 
 `OkHttpClient` --> `Request` --> `newCall` --> `RealCall.enqueue()`(不能重复执行) -->` Dispatcher.enqueue(AsynCall)`(等待队列、执行队列) --> 异步任务 --> `AsyncCall.execute()` --> 责任链模式 多个拦截器 response --> 
 
+程序执行流程时序图可以概括如下：
+
+![image](https://github.com/tianyalu/NeOkHttp/raw/master/show/okhttp_execute_sequence.png)
+
 #### 2.1.1 入口调用
 
 ```java
