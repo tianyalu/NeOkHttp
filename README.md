@@ -481,3 +481,13 @@ public class Test {
 }
 ```
 
+## 三、参考资料
+
+更加详尽的源码分析可以参考：
+
+[Android-OKHTTP底层原理浅析（一）](https://www.jianshu.com/p/3a8d9d0cccb5)
+
+[Android-OKHttp底层原理浅析（二）](https://www.jianshu.com/p/2a547ddd3cc2)
+
+[Android-OKhttp底层原理浅析（三）](https://www.jianshu.com/p/404e5fe3ff56)
+
